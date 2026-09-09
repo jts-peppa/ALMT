@@ -1,0 +1,99 @@
+name: ALMT approved GPU smoke R1
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: almt-local-gpu
+  cancel-in-progress: false
+
+jobs:
+  gpu-smoke:
+    if: >-
+      github.repository == 'jts-peppa/ALMT' &&
+      github.event.label.name == 'gpu-approved' &&
+      github.actor == 'jts-peppa' &&
+      github.event.issue.user.login == 'jts-peppa' &&
+      contains(github.event.issue.labels.*.name, 'approved') &&
+      startsWith(github.event.issue.title, '[ALMT-TASK-')
+    runs-on: [self-hosted, Windows, X64, almt-local]
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out the approved source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Execute the fixed one-epoch GPU smoke test
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: >-
+          & '.github/scripts/Invoke-AlmtGpuSmokeR1.ps1'
+          -EventPath $env:GITHUB_EVENT_PATH
+          -ReportPath (Join-Path $env:GITHUB_WORKSPACE 'docs/agent/runs/exp-r1-gpu-smoke.md')
+
+      - name: Enforce the R1 report-only Git diff
+        shell: powershell
+        run: |
+          $changed = @(git status --porcelain=v1 --untracked-files=all)
+          if ($changed.Count -ne 1 -or $changed[0].Substring(3).Replace('\', '/') -ne 'docs/agent/runs/exp-r1-gpu-smoke.md') {
+            throw "Unexpected R1 changes: $($changed -join '; ')"
+          }
+
+      - name: Commit and push the R1 report
+        id: push
+        shell: powershell
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          $branch = "codex/almt-gpu-smoke-$env:ISSUE_NUMBER"
+          git config user.name 'codex-local-runner'
+          git config user.email 'codex-local-runner@users.noreply.github.com'
+          git switch -c $branch
+          git add -- docs/agent/runs/exp-r1-gpu-smoke.md
+          git commit -m "test: record ALMT GPU smoke for task #$env:ISSUE_NUMBER"
+          git push --set-upstream origin $branch
+          "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Create Draft PR and record Issue handoff
+        id: pr
+        shell: powershell
+        env:
+          TASK_BRANCH: ${{ steps.push.outputs.branch }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: |
+          $headers = @{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='ALMT-GPU-R1'}
+          $payload = @{title="[R1 GPU Smoke] $env:ISSUE_TITLE";head=$env:TASK_BRANCH;base=$env:DEFAULT_BRANCH;draft=$true;body="One-epoch, Seed 1111, no-Test GPU pipeline smoke for #$env:ISSUE_NUMBER."}|ConvertTo-Json
+          $pr=Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri 'https://api.github.com/repos/jts-peppa/ALMT/pulls' -Body $payload
+          $comment=@{body="R1 GPU smoke completed; Draft PR: $($pr.html_url)"}|ConvertTo-Json
+          Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri "https://api.github.com/repos/jts-peppa/ALMT/issues/$env:ISSUE_NUMBER/comments" -Body $comment|Out-Null
+          "node_id=$($pr.node_id)"|Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Mark the completed R1 PR ready for review
+        shell: powershell
+        env:
+          PR_NODE_ID: ${{ steps.pr.outputs.node_id }}
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: |
+          $headers=@{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json';'User-Agent'='ALMT-GPU-R1'}
+          $query='mutation($pullRequestId:ID!){markPullRequestReadyForReview(input:{pullRequestId:$pullRequestId}){pullRequest{url isDraft}}}'
+          $payload=@{query=$query;variables=@{pullRequestId=$env:PR_NODE_ID}}|ConvertTo-Json -Depth 4
+          $response=Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri 'https://api.github.com/graphql' -Body $payload
+          if($response.errors -or $response.data.markPullRequestReadyForReview.pullRequest.isDraft){throw 'Unable to mark R1 PR ready.'}
