@@ -81,7 +81,7 @@ $body
 
 Push-Location -LiteralPath $Workspace
 try {
-    $prompt | & $codex.Source exec --ephemeral --ignore-user-config --sandbox workspace-write --approve-for-me --cd $Workspace --output-last-message $OutputPath -
+    $prompt | & $codex.Source exec --ephemeral --ignore-user-config --approve-for-me --cd $Workspace --output-last-message $OutputPath -
     if ($LASTEXITCODE -ne 0) {
         throw "Codex exited with code $LASTEXITCODE."
     }
