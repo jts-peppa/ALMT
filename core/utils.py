@@ -58,7 +58,7 @@ class results_recorder(object):
         return {'best_results_one_epoch': self.best_results_one_epoch, 'best_results_all_epochs': self.best_results_all_epochs}
     
     def compute_best_results_one_epochs(self):
-        if self.epoch == 1:
+        if not self.best_results_one_epoch:
             for key, value in self.results.items():
                 self.best_results_one_epoch[key] = value
 
@@ -70,7 +70,7 @@ class results_recorder(object):
             pass
 
     def compute_best_results_all_epochs(self):
-        if self.epoch == 1:
+        if not self.best_results_all_epochs:
             for key, value in self.results.items():
                 self.best_results_all_epochs[key] = value
         else:

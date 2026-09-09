@@ -67,12 +67,17 @@ class MMDataset(Dataset):
         return sample
 
 
-def MMDataLoader(args):     
-    datasets = {
-        'train': MMDataset(args, mode='train'),
-        'valid': MMDataset(args, mode='valid'),
-        'test': MMDataset(args, mode='test')
-    }
+def MMDataLoader(args, splits=('train', 'valid')):
+    """Build only explicitly requested data splits.
+
+    Keeping ``test`` out of the default is intentional: training and model
+    selection must not deserialize a test Dataset or expose a test DataLoader.
+    """
+    valid_splits = {'train', 'valid', 'test'}
+    unknown = set(splits) - valid_splits
+    if unknown:
+        raise ValueError(f'Unknown dataset splits: {sorted(unknown)}')
+    datasets = {split: MMDataset(args, mode=split) for split in splits}
 
     dataLoader = {
         ds: DataLoader(datasets[ds],
@@ -82,4 +87,5 @@ def MMDataLoader(args):
         for ds in datasets.keys()
     }
     
+    print(f'DataLoader splits created: {list(dataLoader.keys())}')
     return dataLoader
