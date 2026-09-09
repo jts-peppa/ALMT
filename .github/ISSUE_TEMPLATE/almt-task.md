@@ -49,4 +49,3 @@ Dataset:
 ## Approval Gate
 
 Codex must not execute this issue until a human project owner adds the exact GitHub label `approved`. ChatGPT Work must create tasks as `PROPOSED` and must not add that approval label on behalf of the owner.
-

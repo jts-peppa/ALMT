@@ -50,4 +50,3 @@ Codex must stop without implementation when:
 - Long GPU runs, Test evaluation, destructive cleanup, and material protocol changes require any additional approval explicitly stated in the task.
 - ChatGPT Work may propose the next task and review evidence, but it must not execute code, merge PRs, or approve its own task.
 - GitHub comments and chat messages may clarify a task but do not override the committed `NEXT_TASK.md` scope.
-
