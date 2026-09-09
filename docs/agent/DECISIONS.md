@@ -74,3 +74,28 @@ The project owner selected GitHub as the shared state and requested a repository
 ### Consequence
 
 Chat messages alone do not authorize cross-session experimental work. The assigned task, implementation branch, reports, and completion status must be represented in Git. GitHub Issues or PR comments may supplement the handoff, but they do not silently override the committed task scope.
+
+## DEC-004 Require Human Approval for Agent Tasks
+
+Date: 2026-09-09
+Status: Accepted
+
+### Context
+
+A fully automatic review-to-experiment loop could consume GPU time, alter protocols, or create multiple concurrent tasks without the project owner noticing.
+
+### Decision
+
+ChatGPT Work creates one structured Task Issue with status `PROPOSED`. Codex may claim it only after the human project owner applies the exact `approved` label. After claim, the committed `NEXT_TASK.md` becomes authoritative.
+
+### Reason
+
+The Issue transports the full task without manual prompt copying, while the approval label preserves human control over research cost and direction. The committed claim prevents simultaneous branch ownership.
+
+### Evidence
+
+The project owner selected the Issue-to-claim workflow and requested an explicit human approval gate on 2026-09-09.
+
+### Consequence
+
+ChatGPT Work must not approve its own Issue. Codex must fail closed on zero or multiple eligible tasks and must not execute an unapproved proposal.

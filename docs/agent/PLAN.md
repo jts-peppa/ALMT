@@ -24,14 +24,15 @@
 
 ## Workflow
 
-1. ChatGPT 将唯一待执行任务写入 `docs/agent/NEXT_TASK.md`，状态设为 `READY`。
-2. Codex 在修改代码前认领任务，将状态设为 `IN_PROGRESS`，并记录唯一工作分支。
-3. 冻结并复现 baseline。
-4. 记录数据、代码、配置、环境和评价协议。
-5. 进行低成本问题诊断和可行性实验。
-6. Codex 更新实验报告、状态和索引，提交并推送工作分支。
-7. ChatGPT 通过 GitHub 提交或 PR 审查证据，并决定候选创新是否继续。
-8. 通过后进行多 seed 正式实验和消融。
-9. 方法完全冻结后才进行最终 Test 评价。
+1. ChatGPT Work 创建唯一的结构化 `ALMT-TASK-*` GitHub Issue，初始状态为 `PROPOSED`。
+2. 项目负责人审核 Issue，并在同意执行时添加精确的 `approved` 标签。
+3. Codex 读取唯一获批任务，创建工作分支，并将任务写入 `docs/agent/NEXT_TASK.md`，状态设为 `IN_PROGRESS`。
+4. 冻结并复现 baseline。
+5. 记录数据、代码、配置、环境和评价协议。
+6. 进行低成本问题诊断和可行性实验。
+7. Codex 更新实验报告、状态和索引，提交并推送工作分支。
+8. ChatGPT Work 通过 PR 审查证据，并决定候选创新是否继续。
+9. 通过后进行多 seed 正式实验和消融。
+10. 方法完全冻结后才进行最终 Test 评价。
 
-`NEXT_TASK.md` 是任务范围和验收条件的唯一共享来源。聊天内容只有在被写入并提交到该文件后，才构成可由另一个 Agent 稳定读取的跨会话任务。
+GitHub Issue 是 ChatGPT Work 到 Codex 的运输通道。Codex认领后，`NEXT_TASK.md` 是任务范围和验收条件的唯一执行来源。聊天内容只有在经过获批Issue并写入提交到该文件后，才构成可由另一个 Agent 稳定读取的跨会话任务。
