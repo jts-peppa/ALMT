@@ -60,31 +60,46 @@ jobs:
 
       - name: Create the pull request
         id: pr
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        shell: powershell
         env:
           TASK_BRANCH: ${{ steps.push.outputs.branch }}
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: process.env.TASK_BRANCH,
-              base: context.payload.repository.default_branch,
-              title: `[R0] Execute ${context.payload.issue.title}`,
-              body: `Restricted self-hosted Codex R0 run for #${context.issue.number}.\n\nOnly \`docs/agent/**\` changes are permitted by the runner guard.`,
-              draft: false,
-            });
-            core.setOutput('url', pr.html_url);
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+            'User-Agent' = 'ALMT-Codex-R0'
+          }
+          $payload = @{
+            title = "[R0] Execute $env:ISSUE_TITLE"
+            head = $env:TASK_BRANCH
+            base = $env:DEFAULT_BRANCH
+            body = "Restricted self-hosted Codex R0 run for #$env:ISSUE_NUMBER.`n`nOnly docs/agent/** changes are permitted by the runner guard."
+            draft = $false
+          } | ConvertTo-Json
+          $pr = Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri 'https://api.github.com/repos/jts-peppa/ALMT/pulls' -Body $payload
+          "url=$($pr.html_url)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Record the handoff on the task issue
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        shell: powershell
         env:
           PR_URL: ${{ steps.pr.outputs.url }}
-        with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `Codex R0 completed and opened: ${process.env.PR_URL}`,
-            });
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+            'User-Agent' = 'ALMT-Codex-R0'
+          }
+          $payload = @{ body = "Codex R0 completed and opened: $env:PR_URL" } | ConvertTo-Json
+          Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri "https://api.github.com/repos/jts-peppa/ALMT/issues/$env:ISSUE_NUMBER/comments" -Body $payload | Out-Null
