@@ -30,6 +30,8 @@ The initial automation stage is deliberately documentation-only. An Issue event 
 
 R0 runs Codex read-only and requires a schema-validated `ACCEPT` or `REJECT` decision. After acceptance, a trusted script writes only `NEXT_TASK.md` and the task's R0 handoff report. A post-run path guard rejects every other changed path before commit. R0 must not train a model, access datasets, use the GPU, modify algorithms, or execute commands copied from Issue text. Opening source-code or GPU permissions requires a separately reviewed later-stage workflow.
 
+The trusted workflow first opens a Draft PR. Only after the required handoff record and Issue comment succeed does it mark that PR ready through GitHub's `markPullRequestReadyForReview` mutation. This transition must emit `ready_for_review`, which is the review Agent's trigger; creating a non-draft PR directly is not permitted.
+
 ## Fixed Codex Intake Procedure
 
 1. Fetch the current repository and inspect open issues whose title begins with `[ALMT-TASK-`.
