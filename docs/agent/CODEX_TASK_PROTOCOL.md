@@ -16,6 +16,20 @@ ChatGPT Work review
 
 GitHub Issue is the transport channel. After Codex claims an approved task, `docs/agent/NEXT_TASK.md` is the authoritative execution scope.
 
+## R0 Self-Hosted Runner Boundary
+
+The initial automation stage is deliberately documentation-only. An Issue event may launch Codex only when all of the following are true:
+
+- repository is exactly `jts-peppa/ALMT`;
+- Issue creator and label actor are exactly `jts-peppa`;
+- the applied label is exactly `approved`;
+- the title matches `[ALMT-TASK-NNN] <goal>`;
+- the body contains `Status: PROPOSED` or `Status: READY`;
+- `NEXT_TASK.md` is not already `IN_PROGRESS`;
+- the dedicated runner has the `almt-local` label.
+
+R0 permits modifications only under `docs/agent/`. A post-run path guard rejects every other changed path before commit. R0 must not train a model, access datasets, use the GPU, modify algorithms, or execute commands copied from Issue text. Opening source-code or GPU permissions requires a separately reviewed later-stage workflow.
+
 ## Fixed Codex Intake Procedure
 
 1. Fetch the current repository and inspect open issues whose title begins with `[ALMT-TASK-`.
