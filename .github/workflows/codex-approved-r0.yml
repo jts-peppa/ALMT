@@ -1,0 +1,90 @@
+name: Codex approved task R0
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: almt-codex-local
+  cancel-in-progress: false
+
+jobs:
+  execute-approved-task:
+    if: >-
+      github.repository == 'jts-peppa/ALMT' &&
+      github.event.label.name == 'approved' &&
+      github.actor == 'jts-peppa' &&
+      github.event.issue.user.login == 'jts-peppa' &&
+      startsWith(github.event.issue.title, '[ALMT-TASK-')
+    runs-on: [self-hosted, Windows, X64, almt-local]
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Run the restricted Codex R0 task
+        id: codex
+        shell: powershell
+        run: >-
+          & '.github/scripts/Invoke-CodexApprovedR0.ps1'
+          -EventPath $env:GITHUB_EVENT_PATH
+          -Workspace $env:GITHUB_WORKSPACE
+          -OutputPath (Join-Path $env:RUNNER_TEMP 'codex-r0-final.txt')
+
+      - name: Commit and push the R0 documentation changes
+        id: push
+        shell: powershell
+        run: |
+          $branch = "codex/almt-task-$($env:ISSUE_NUMBER)-r0"
+          git config user.name "codex-local-runner"
+          git config user.email "codex-local-runner@users.noreply.github.com"
+          git switch -c $branch
+          git add -- docs/agent
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            throw 'Codex produced no reviewable docs/agent changes.'
+          }
+          git commit -m "chore: execute ALMT task #$($env:ISSUE_NUMBER) R0"
+          git push --set-upstream origin $branch
+          "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Create the pull request
+        id: pr
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          TASK_BRANCH: ${{ steps.push.outputs.branch }}
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: process.env.TASK_BRANCH,
+              base: context.payload.repository.default_branch,
+              title: `[R0] Execute ${context.payload.issue.title}`,
+              body: `Restricted self-hosted Codex R0 run for #${context.issue.number}.\n\nOnly \`docs/agent/**\` changes are permitted by the runner guard.`,
+              draft: false,
+            });
+            core.setOutput('url', pr.html_url);
+
+      - name: Record the handoff on the task issue
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PR_URL: ${{ steps.pr.outputs.url }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Codex R0 completed and opened: ${process.env.PR_URL}`,
+            });

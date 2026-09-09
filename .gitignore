@@ -1,0 +1,68 @@
+# Local Python and virtual environments
+.envs/
+.venv/
+venv/
+env/
+.env
+
+# IDE and tool state
+.idea/
+.vscode/
+.cache/
+.models/
+tmp/
+temp/
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Datasets and large generated artifacts
+dataset/
+datasets/
+data/
+pt/
+ckpt/
+checkpoints/
+log/
+logs/
+/runs/
+outputs/
+
+# Model weights and array/data containers
+*.pth
+*.pt
+*.ckpt
+*.pkl
+*.pickle
+*.npy
+*.npz
+
+# Secrets and local credentials
+*.key
+*.pem
+*.p12
+*.secret
+
+# Local machine-specific experiment configuration
+configs/*_local.yaml
+configs/*_smoke*.yaml
+
+# Result policy: ignore bulky artifacts, retain small reviewable summaries
+result/**
+!result/**/
+!result/**/*.md
+!result/**/*.json
+!result/**/*.csv
+results/**
+!results/**/
+!results/**/*.md
+!results/**/*.json
+!results/**/*.csv
+
+# TensorBoard and profiler output
+events.out.tfevents.*
+*.trace.json
