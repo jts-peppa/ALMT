@@ -49,3 +49,28 @@ The evaluation rule was explicitly included in the project bootstrap requirement
 ### Consequence
 
 Every experiment report must identify the splits used, and training code must not silently evaluate Test during model selection.
+
+## DEC-003 Use a Versioned Task Handoff
+
+Date: 2026-09-09
+Status: Accepted
+
+### Context
+
+Separate ChatGPT and Codex conversations do not provide a dependable shared conversation history. A task must remain available across sessions and be reviewable before implementation begins.
+
+### Decision
+
+Use `docs/agent/NEXT_TASK.md` as the unique versioned task handoff for the repository. A task may be implemented only when its status is `READY`. Codex must claim it as `IN_PROGRESS` on a dedicated branch before modifying scoped files.
+
+### Reason
+
+A committed handoff makes the goal, permitted files, experiment protocol, acceptance criteria, and required outputs visible to both Agents while preventing simultaneous modification of one branch.
+
+### Evidence
+
+The project owner selected GitHub as the shared state and requested a repository-based ChatGPT-to-Codex handoff on 2026-09-09.
+
+### Consequence
+
+Chat messages alone do not authorize cross-session experimental work. The assigned task, implementation branch, reports, and completion status must be represented in Git. GitHub Issues or PR comments may supplement the handoff, but they do not silently override the committed task scope.

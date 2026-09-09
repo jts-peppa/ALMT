@@ -19,11 +19,12 @@ Last updated: 2026-09-09
 - Current untracked research code/configuration: `test_protocol_safe.py` and local aligned/smoke configuration files
 - Current untracked large artifacts: checkpoints under `ckpt/`; logs under `log/`
 - Main blocker: protocol/resume changes and baseline experiment state have not yet been independently reviewed and frozen in Git.
-- Next step: wait for a research task and decision from ChatGPT before changing model algorithms or starting training.
+- Task handoff file: `docs/agent/NEXT_TASK.md`
+- Current task status: `EMPTY`
+- Next step: wait for ChatGPT to commit a `READY` task before changing model algorithms or starting training.
 
 Unknown or intentionally not asserted:
 
 - Peak VRAM of a completed formal baseline run: `UNKNOWN`
 - Final reproduced ALMT metrics: `UNKNOWN`
 - Final innovation direction: `UNKNOWN`
-
