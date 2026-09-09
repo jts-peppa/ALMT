@@ -28,7 +28,7 @@ The initial automation stage is deliberately documentation-only. An Issue event 
 - `NEXT_TASK.md` is not already `IN_PROGRESS`;
 - the dedicated runner has the `almt-local` label.
 
-R0 permits modifications only under `docs/agent/`. A post-run path guard rejects every other changed path before commit. R0 must not train a model, access datasets, use the GPU, modify algorithms, or execute commands copied from Issue text. Opening source-code or GPU permissions requires a separately reviewed later-stage workflow.
+R0 runs Codex read-only and requires a schema-validated `ACCEPT` or `REJECT` decision. After acceptance, a trusted script writes only `NEXT_TASK.md` and the task's R0 handoff report. A post-run path guard rejects every other changed path before commit. R0 must not train a model, access datasets, use the GPU, modify algorithms, or execute commands copied from Issue text. Opening source-code or GPU permissions requires a separately reviewed later-stage workflow.
 
 ## Fixed Codex Intake Procedure
 
