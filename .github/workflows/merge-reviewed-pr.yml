@@ -19,7 +19,15 @@ jobs:
       github.repository == 'jts-peppa/ALMT' &&
       github.event.label.name == 'merge-approved' &&
       github.actor == 'jts-peppa' &&
-      github.event.pull_request.user.login == 'jts-peppa' &&
+      github.event.pull_request.base.ref == 'master' &&
+      github.event.pull_request.head.repo.full_name == 'jts-peppa/ALMT' &&
+      (
+        github.event.pull_request.user.login == 'jts-peppa' ||
+        (
+          github.event.pull_request.user.login == 'github-actions[bot]' &&
+          startsWith(github.event.pull_request.head.ref, 'codex/almt-gpu-smoke-')
+        )
+      ) &&
       github.event.pull_request.state == 'open' &&
       github.event.pull_request.draft == false
     runs-on: windows-latest
@@ -45,7 +53,14 @@ jobs:
           $prUri = "https://api.github.com/repos/$env:REPOSITORY/pulls/$env:PR_NUMBER"
           $pr = Invoke-RestMethod -Method Get -Headers $headers -Uri $prUri
           if ($pr.state -ne 'open' -or $pr.draft) { throw 'PR must be open and ready for review.' }
-          if ($pr.user.login -ne 'jts-peppa') { throw 'PR author is not trusted.' }
+          $ownerAuthored = $pr.user.login -eq 'jts-peppa'
+          $trustedRunnerAuthored = (
+            $pr.user.login -eq 'github-actions[bot]' -and
+            $pr.head.repo.full_name -eq 'jts-peppa/ALMT' -and
+            $pr.head.ref -like 'codex/almt-gpu-smoke-*'
+          )
+          if (-not ($ownerAuthored -or $trustedRunnerAuthored)) { throw 'PR author or source branch is not trusted.' }
+          if ($pr.base.ref -ne 'master') { throw 'Only PRs targeting master may be merged.' }
           if ($pr.head.sha -cne $env:EVENT_HEAD_SHA) { throw 'PR head changed after the approval event.' }
           if (-not $pr.mergeable) { throw 'GitHub does not currently consider this PR mergeable.' }
 
