@@ -2,6 +2,7 @@
 
 | ID | Date | Branch | Commit | Goal | Dataset | Seed | Status | Result |
 |---|---|---|---|---|---|---|---|---|
+| EXP-001 | 2026-09-10 | `codex/almt-gpu-smoke-17` | `fadfda4d7a2e9902790f11cebf800393046ac476` | Validate the approved Issue-to-local-GPU one-epoch pipeline without Test access | MOSI aligned | 1111 | PRELIMINARY | Infrastructure smoke passed; no scientific metrics or baseline claim |
 
 Each formal experiment must create a new report:
 

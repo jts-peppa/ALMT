@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-09-09
+Last updated: 2026-09-10
 
 - Repository: `E:\ALMT`
-- Branch: `codex/agent-bootstrap`
-- Base commit: `da9461071f21e75eb8bf2bedff14ac23f5954605`
+- Branch: `codex/almt-gpu-smoke-17` (PR #19)
+- Experiment source commit: `fadfda4d7a2e9902790f11cebf800393046ac476`
 - Python: `3.11.10`
 - Interpreter: `D:\Users\123\anaconda3\envs\ALMT\python.exe`
 - PyTorch: `2.5.1+cu121`
@@ -13,15 +13,15 @@ Last updated: 2026-09-09
 - GPU: `NVIDIA GeForce GTX 1660 Ti`
 - MOSI aligned dataset: present at `E:\rc-dlf\dataset\MOSI\Processed\aligned_50.pkl`
 - Dataset size: `367257274` bytes
-- Baseline status: ALMT engineering smoke test artifacts are present; formal baseline reproduction is paused and not yet confirmed.
-- Working directory clean: `No`
-- Current uncommitted source changes: `core/dataset.py`, `core/utils.py`, `train.py`
-- Current untracked research code/configuration: `test_protocol_safe.py` and local aligned/smoke configuration files
+- Baseline status: EXP-001 one-epoch GPU pipeline smoke passed; formal ALMT baseline reproduction has not started and is not confirmed.
+- Working directory clean at EXP-001 launch: `Yes`
+- Current experiment code changes: none; PR #19 contains documentation only
+- Local runtime configuration: `configs/mosi_runner_smoke_local.yaml`, intentionally ignored; SHA-256 recorded in EXP-001
 - Current untracked large artifacts: checkpoints under `ckpt/`; logs under `log/`
-- Main blocker: protocol/resume changes and baseline experiment state have not yet been independently reviewed and frozen in Git.
+- Main blocker: EXP-001 requires Work re-review after its audit documentation is updated; formal baseline training remains unauthorized.
 - Task handoff file: `docs/agent/NEXT_TASK.md`
-- Current task status: `EMPTY`
-- Next step: wait for ChatGPT to commit a `READY` task before changing model algorithms or starting training.
+- Current task status: `ALMT-TASK-004` completed at the runner level; PR #19 review changes requested
+- Next step: re-review PR #19; do not start baseline training or modify model algorithms.
 
 Unknown or intentionally not asserted:
 
