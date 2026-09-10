@@ -25,7 +25,10 @@ jobs:
         github.event.pull_request.user.login == 'jts-peppa' ||
         (
           github.event.pull_request.user.login == 'github-actions[bot]' &&
-          startsWith(github.event.pull_request.head.ref, 'codex/almt-gpu-smoke-')
+          (
+            startsWith(github.event.pull_request.head.ref, 'codex/almt-gpu-smoke-') ||
+            github.event.pull_request.head.ref == 'codex/almt-baseline-seed1111-r2'
+          )
         )
       ) &&
       github.event.pull_request.state == 'open' &&
@@ -57,7 +60,7 @@ jobs:
           $trustedRunnerAuthored = (
             $pr.user.login -eq 'github-actions[bot]' -and
             $pr.head.repo.full_name -eq 'jts-peppa/ALMT' -and
-            $pr.head.ref -like 'codex/almt-gpu-smoke-*'
+            ($pr.head.ref -like 'codex/almt-gpu-smoke-*' -or $pr.head.ref -eq 'codex/almt-baseline-seed1111-r2')
           )
           if (-not ($ownerAuthored -or $trustedRunnerAuthored)) { throw 'PR author or source branch is not trusted.' }
           if ($pr.base.ref -ne 'master') { throw 'Only PRs targeting master may be merged.' }
