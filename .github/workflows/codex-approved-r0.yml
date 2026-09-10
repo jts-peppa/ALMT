@@ -20,7 +20,8 @@ jobs:
       github.event.label.name == 'approved' &&
       github.actor == 'jts-peppa' &&
       github.event.issue.user.login == 'jts-peppa' &&
-      startsWith(github.event.issue.title, '[ALMT-TASK-')
+      startsWith(github.event.issue.title, '[ALMT-TASK-') &&
+      !contains(github.event.issue.body, 'Experiment Type: ALMT_MOSI_BASELINE_SMOKE_R1')
     runs-on: [self-hosted, Windows, X64, almt-local]
     timeout-minutes: 30
 
