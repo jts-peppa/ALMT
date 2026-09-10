@@ -36,6 +36,10 @@ The trusted workflow first opens a Draft PR. Only after the required handoff rec
 
 GPU execution requires both `approved` and `gpu-approved`; the owner must apply `gpu-approved` last to trigger the workflow. R1 accepts exactly one open task carrying both labels and supports only the fixed `ALMT_MOSI_BASELINE_SMOKE_R1` contract: MOSI, Seed 1111, one epoch, and no Test evaluation. The task body must contain the source commit and approved configuration SHA-256. Before starting, the workflow verifies the clean `master` checkout, approved interpreter, and no more than 1500 MiB of GPU memory in use. It may commit only the three-digit report `docs/agent/runs/exp-001.md`; checkpoints and full logs remain local and ignored. R1 uses the Draft-to-Ready PR sequence and cannot authorize a full baseline run.
 
+## Reviewed PR Merge Boundary
+
+Automatic merging requires a separate human-applied `merge-approved` label. The label must be applied last by `jts-peppa` to an open, non-draft PR authored by `jts-peppa`. The current PR head must have exactly one owner-authored comment containing `<!-- ALMT-RESEARCH-REVIEW -->`, the matching `Source PR` and full `Source Commit`, and the independent field `PR Disposition: MERGE`. Research decisions such as `CONFIRMED`, `PRELIMINARY`, `FAILED`, or `INCONCLUSIVE` do not authorize a merge. A changed head, ambiguous review, requested changes, or an unmergeable PR stops the workflow.
+
 ## Fixed Codex Intake Procedure
 
 1. Fetch the current repository and inspect open issues whose title begins with `[ALMT-TASK-`.
