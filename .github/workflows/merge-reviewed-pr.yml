@@ -66,13 +66,16 @@ jobs:
 
           $commentsUri = "https://api.github.com/repos/$env:REPOSITORY/issues/$env:PR_NUMBER/comments?per_page=100"
           $comments = @(Invoke-RestMethod -Method Get -Headers $headers -Uri $commentsUri)
+          $sourcePrPattern = "(?im)^(?:Source PR:|-\s*\*\*Source PR:\*\*)\s*#?$env:PR_NUMBER\s*$"
+          $sourceCommitPattern = "(?im)^(?:Source Commit:|-\s*\*\*Source Commit:\*\*)\s*[\x60']?$env:EVENT_HEAD_SHA[\x60']?\s*$"
+          $mergeDispositionPattern = '(?im)^(?:PR Disposition:|-\s*\*\*PR Disposition:\*\*)\s*MERGE\s*$'
           $matching = @($comments | Where-Object {
             $_.user.login -eq 'jts-peppa' -and
             $_.author_association -eq 'OWNER' -and
             $_.body -match '<!-- ALMT-RESEARCH-REVIEW -->' -and
-            $_.body -match "(?im)^Source PR:\s*#?$env:PR_NUMBER\s*$" -and
-            $_.body -match "(?im)^Source Commit:\s*$env:EVENT_HEAD_SHA\s*$" -and
-            $_.body -match '(?im)^PR Disposition:\s*MERGE\s*$'
+            $_.body -match $sourcePrPattern -and
+            $_.body -match $sourceCommitPattern -and
+            $_.body -match $mergeDispositionPattern
           })
           if ($matching.Count -ne 1) {
             throw "Expected exactly one owner-authored merge review for the current head; found $($matching.Count)."
