@@ -34,11 +34,7 @@ The trusted workflow first opens a Draft PR. Only after the required handoff rec
 
 ## R1 GPU Smoke Boundary
 
-GPU execution requires both `approved` and `gpu-approved`; the owner must apply `gpu-approved` last to trigger the workflow. R1 accepts exactly one open task carrying both labels and supports only the fixed `ALMT_MOSI_BASELINE_SMOKE_R1` contract: MOSI, Seed 1111, one epoch, and no Test evaluation. It verifies the full source commit, local configuration SHA-256, clean `master` checkout, approved interpreter, and available GPU before starting. R1 produces a small report PR through the same Draft-to-Ready sequence and cannot authorize a full baseline run.
-
-## R1 GPU Smoke Boundary
-
-The first GPU-capable workflow is limited to a single MOSI epoch with Seed 1111 and Test evaluation disabled. It requires both `approved` and `gpu-approved`, with `gpu-approved` applied by `jts-peppa`. The task body must contain the fixed experiment type, source commit, configuration SHA-256, seed, epoch limit, and Test prohibition. The local checkout must be clean, on the exact approved commit, and use no more than 1500 MiB of GPU memory before launch. Only a small smoke report may be committed; checkpoints and full logs remain local and ignored. Full training is not authorized by R1.
+GPU execution requires both `approved` and `gpu-approved`; the owner must apply `gpu-approved` last to trigger the workflow. R1 accepts exactly one open task carrying both labels and supports only the fixed `ALMT_MOSI_BASELINE_SMOKE_R1` contract: MOSI, Seed 1111, one epoch, and no Test evaluation. The task body must contain the source commit and approved configuration SHA-256. Before starting, the workflow verifies the clean `master` checkout, approved interpreter, and no more than 1500 MiB of GPU memory in use. It may commit only the three-digit report `docs/agent/runs/exp-001.md`; checkpoints and full logs remain local and ignored. R1 uses the Draft-to-Ready PR sequence and cannot authorize a full baseline run.
 
 ## Fixed Codex Intake Procedure
 

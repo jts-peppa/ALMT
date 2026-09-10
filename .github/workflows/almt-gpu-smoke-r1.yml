@@ -40,13 +40,13 @@ jobs:
         run: >-
           & '.github/scripts/Invoke-AlmtGpuSmokeR1.ps1'
           -EventPath $env:GITHUB_EVENT_PATH
-          -ReportPath (Join-Path $env:GITHUB_WORKSPACE 'docs/agent/runs/exp-r1-gpu-smoke.md')
+          -ReportPath (Join-Path $env:GITHUB_WORKSPACE 'docs/agent/runs/exp-001.md')
 
       - name: Enforce the R1 report-only Git diff
         shell: powershell
         run: |
           $changed = @(git status --porcelain=v1 --untracked-files=all)
-          if ($changed.Count -ne 1 -or $changed[0].Substring(3).Replace('\', '/') -ne 'docs/agent/runs/exp-r1-gpu-smoke.md') {
+          if ($changed.Count -ne 1 -or $changed[0].Substring(3).Replace('\', '/') -ne 'docs/agent/runs/exp-001.md') {
             throw "Unexpected R1 changes: $($changed -join '; ')"
           }
 
@@ -60,7 +60,7 @@ jobs:
           git config user.name 'codex-local-runner'
           git config user.email 'codex-local-runner@users.noreply.github.com'
           git switch -c $branch
-          git add -- docs/agent/runs/exp-r1-gpu-smoke.md
+          git add -- docs/agent/runs/exp-001.md
           git commit -m "test: record ALMT GPU smoke for task #$env:ISSUE_NUMBER"
           git push --set-upstream origin $branch
           "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
