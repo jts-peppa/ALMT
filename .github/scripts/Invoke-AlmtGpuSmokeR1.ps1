@@ -36,7 +36,7 @@ $apiHeaders = @{
 }
 $openItems = Invoke-RestMethod -Headers $apiHeaders -Uri 'https://api.github.com/repos/jts-peppa/ALMT/issues?state=open&per_page=100'
 $eligibleTasks = @($openItems | Where-Object {
-    -not $_.pull_request -and
+    $null -eq $_.PSObject.Properties['pull_request'] -and
     $_.title -match '^\[ALMT-TASK-' -and
     @($_.labels | ForEach-Object { $_.name }) -contains 'approved' -and
     @($_.labels | ForEach-Object { $_.name }) -contains 'gpu-approved'

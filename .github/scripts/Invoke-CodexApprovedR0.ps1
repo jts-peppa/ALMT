@@ -55,7 +55,14 @@ if ($nextTask -match '(?im)^Status:\s*`?IN_PROGRESS`?\s*$') {
     throw 'NEXT_TASK.md already contains an IN_PROGRESS task.'
 }
 
-$codex = Get-Command codex -ErrorAction Stop
+$codex = Get-Command codex -ErrorAction SilentlyContinue
+if ($null -eq $codex) {
+    $stableCodexPath = 'C:\Users\123\AppData\Local\OpenAI\Codex\bin\codex.exe'
+    if (-not (Test-Path -LiteralPath $stableCodexPath -PathType Leaf)) {
+        throw 'Codex CLI is unavailable from both PATH and the approved stable installation path.'
+    }
+    $codex = Get-Command $stableCodexPath -ErrorAction Stop
+}
 $prompt = @"
 You are reviewing the restricted R0 intake test for GitHub issue #$($event.issue.number) in jts-peppa/ALMT.
 
