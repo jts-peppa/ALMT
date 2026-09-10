@@ -1,4 +1,4 @@
-# Project Status
+﻿# Project Status
 
 Last updated: 2026-09-10
 
@@ -28,3 +28,12 @@ Unknown or intentionally not asserted:
 - Peak VRAM of a completed formal baseline run: `UNKNOWN`
 - Final reproduced ALMT metrics: `UNKNOWN`
 - Final innovation direction: `UNKNOWN`
+
+## Latest Automated Baseline
+
+- Experiment: EXP-002
+- Dataset: MOSI aligned
+- Seed: 1111
+- Status: PRELIMINARY pending Work review
+- Report: docs/agent/runs/exp-002.md
+
