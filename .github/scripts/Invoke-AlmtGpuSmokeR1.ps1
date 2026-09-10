@@ -91,9 +91,10 @@ try {
 
     $lastLine = Select-String -LiteralPath $logPath -Pattern '^Epoch audit:' | Select-Object -Last 1
     $report = @"
-# EXP-R1-GPU-SMOKE
+# EXP-001
 
 Status: PRELIMINARY
+Experiment Type: GPU_SMOKE
 Task ID: $taskId
 Source Issue: #$($event.issue.number)
 Source Commit: $head
