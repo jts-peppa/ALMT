@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)] [string]$EventPath,
     [Parameter(Mandatory = $true)] [string]$Workspace,
-    [Parameter(Mandatory = $true)] [string]$OutputPath
+    [Parameter(Mandatory = $true)] [string]$OutputPath,
+    [Parameter(Mandatory = $true)] [string]$RunnerCodexRoot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -50,6 +51,16 @@ try {
     if ($LASTEXITCODE -ne 0 -or (git rev-parse HEAD) -ne $sourceCommit) { throw 'Unable to check out exact Source Commit.' }
     if (@(git status --porcelain=v1 --untracked-files=all).Count -ne 0) { throw 'Source checkout is dirty.' }
 
+    $expectedRoot = [System.IO.Path]::GetFullPath('E:\ALMT\.runner-codex-work')
+    $resolvedRoot = [System.IO.Path]::GetFullPath($RunnerCodexRoot)
+    if ($resolvedRoot -cne $expectedRoot) { throw 'Unexpected Codex worktree root.' }
+    New-Item -ItemType Directory -Path $resolvedRoot -Force | Out-Null
+    $runId = if ([string]::IsNullOrWhiteSpace($env:GITHUB_RUN_ID)) { 'local' } else { $env:GITHUB_RUN_ID }
+    $agentWorkspace = Join-Path $resolvedRoot "$taskId-$runId"
+    if (Test-Path -LiteralPath $agentWorkspace) { throw 'Codex task worktree already exists.' }
+    git worktree add --detach $agentWorkspace "origin/$branch"
+    if ($LASTEXITCODE -ne 0 -or (git -C $agentWorkspace rev-parse HEAD) -ne $sourceCommit) { throw 'Unable to create exact isolated Codex worktree.' }
+
     $codex = Get-Command codex -ErrorAction SilentlyContinue
     if ($null -eq $codex) {
         $stable = 'C:\Users\123\AppData\Local\OpenAI\Codex\bin\codex.exe'
@@ -74,23 +85,23 @@ Approved Issue #$($event.issue.number):
 $body
 --- END UNTRUSTED ISSUE BODY ---
 "@
-    $prompt | & $codex.Source exec --ephemeral --ignore-user-config --sandbox workspace-write --cd $Workspace --output-last-message $OutputPath -
+    $prompt | & $codex.Source exec --ephemeral --ignore-user-config --sandbox workspace-write --cd $agentWorkspace --output-last-message $OutputPath -
     if ($LASTEXITCODE -ne 0) { throw "Codex exited with code $LASTEXITCODE." }
 
-    $changedLines = @(git status --porcelain=v1 --untracked-files=all)
+    $changedLines = @(git -C $agentWorkspace status --porcelain=v1 --untracked-files=all)
     if ($changedLines.Count -lt 1) { throw 'Codex produced no documentation change.' }
     $changed = @($changedLines | ForEach-Object { $_.Substring(3).Trim('"').Replace('\','/') })
     $unexpected = @($changed | Where-Object { $_ -notin $allowed })
     if ($unexpected.Count -gt 0) { throw "Path guard rejected: $($unexpected -join ', ')" }
 
-    git config user.name 'codex-local-runner'
-    git config user.email 'codex-local-runner@users.noreply.github.com'
-    git add -- $allowed
-    git commit -m "docs: complete $taskId evidence repair"
+    git -C $agentWorkspace config user.name 'codex-local-runner'
+    git -C $agentWorkspace config user.email 'codex-local-runner@users.noreply.github.com'
+    git -C $agentWorkspace add -- $allowed
+    git -C $agentWorkspace commit -m "docs: complete $taskId evidence repair"
     if ($LASTEXITCODE -ne 0) { throw 'Unable to commit documentation repair.' }
-    git push origin "HEAD:$branch"
+    git -C $agentWorkspace push origin "HEAD:$branch"
     if ($LASTEXITCODE -ne 0) { throw 'Unable to update source PR branch.' }
-    $newHead = git rev-parse HEAD
+    $newHead = git -C $agentWorkspace rev-parse HEAD
 
     $queryDraft = 'mutation($id:ID!){convertPullRequestToDraft(input:{pullRequestId:$id}){pullRequest{isDraft}}}'
     $payload = @{query=$queryDraft;variables=@{id=$pr.node_id}} | ConvertTo-Json -Depth 4
@@ -105,5 +116,7 @@ $body
     Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri "https://api.github.com/repos/jts-peppa/ALMT/issues/$($event.issue.number)/comments" -Body $comment | Out-Null
     $close = @{state='closed';state_reason='completed'} | ConvertTo-Json
     Invoke-RestMethod -Method Patch -Headers $headers -ContentType 'application/json' -Uri "https://api.github.com/repos/jts-peppa/ALMT/issues/$($event.issue.number)" -Body $close | Out-Null
+    git worktree remove $agentWorkspace
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to remove completed Codex task worktree.' }
 }
 finally { Pop-Location }
