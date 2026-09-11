@@ -97,7 +97,8 @@ $body
             }
         }
     }
-    $schema | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $schemaPath -Encoding utf8
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($schemaPath, ($schema | ConvertTo-Json -Depth 8), $utf8NoBom)
     $prompt | & $codex.Source exec --ephemeral --ignore-user-config --sandbox read-only --cd $Workspace --output-schema $schemaPath --output-last-message $OutputPath -
     if ($LASTEXITCODE -ne 0) { throw "Codex exited with code $LASTEXITCODE." }
 
@@ -107,7 +108,6 @@ $body
     if ($files.Count -ne $allowed.Count -or $returnedPaths.Count -ne (@($returnedPaths | Select-Object -Unique)).Count) { throw 'Codex returned an incomplete or duplicate file set.' }
     $missing = @($allowed | Where-Object { $_ -notin $returnedPaths })
     if ($missing.Count -gt 0) { throw "Codex omitted allowlisted files: $($missing -join ', ')" }
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     foreach ($file in $files) {
         $path = [string]$file.path
         if ($path -notin $allowed) { throw "Codex returned a non-allowlisted path: $path" }
