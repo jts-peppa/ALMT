@@ -66,4 +66,3 @@ results/**
 # TensorBoard and profiler output
 events.out.tfevents.*
 *.trace.json
-.runner-codex-work/
