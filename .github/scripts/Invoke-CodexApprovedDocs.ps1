@@ -134,11 +134,11 @@ $body
     $queryDraft = 'mutation($id:ID!){convertPullRequestToDraft(input:{pullRequestId:$id}){pullRequest{isDraft}}}'
     $payload = @{query=$queryDraft;variables=@{id=$pr.node_id}} | ConvertTo-Json -Depth 4
     $draft = Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri 'https://api.github.com/graphql' -Body $payload
-    if ($draft.errors -or -not $draft.data.convertPullRequestToDraft.pullRequest.isDraft) { throw 'Unable to convert PR to Draft.' }
+    if (($draft.PSObject.Properties.Name -contains 'errors' -and $draft.errors) -or -not $draft.data.convertPullRequestToDraft.pullRequest.isDraft) { throw 'Unable to convert PR to Draft.' }
     $queryReady = 'mutation($id:ID!){markPullRequestReadyForReview(input:{pullRequestId:$id}){pullRequest{isDraft url}}}'
     $payload = @{query=$queryReady;variables=@{id=$pr.node_id}} | ConvertTo-Json -Depth 4
     $ready = Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri 'https://api.github.com/graphql' -Body $payload
-    if ($ready.errors -or $ready.data.markPullRequestReadyForReview.pullRequest.isDraft) { throw 'Unable to mark updated PR Ready.' }
+    if (($ready.PSObject.Properties.Name -contains 'errors' -and $ready.errors) -or $ready.data.markPullRequestReadyForReview.pullRequest.isDraft) { throw 'Unable to mark updated PR Ready.' }
 
     $comment = @{body="Codex completed $taskId on PR #$sourcePr at commit `$newHead`. The PR was returned to Ready for Work re-review. No experiment or Test was run."} | ConvertTo-Json
     Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' -Uri "https://api.github.com/repos/jts-peppa/ALMT/issues/$($event.issue.number)/comments" -Body $comment | Out-Null
