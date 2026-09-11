@@ -1,0 +1,45 @@
+name: Codex approved docs task
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: almt-codex-local
+  cancel-in-progress: false
+
+jobs:
+  execute-docs-task:
+    if: >-
+      github.repository == 'jts-peppa/ALMT' &&
+      github.event.label.name == 'approved' &&
+      github.actor == 'jts-peppa' &&
+      github.event.issue.user.login == 'jts-peppa' &&
+      startsWith(github.event.issue.title, '[ALMT-TASK-') &&
+      contains(github.event.issue.body, '## Files Allowed to Modify') &&
+      !contains(github.event.issue.body, 'Experiment Type:')
+    runs-on: [self-hosted, Windows, X64, almt-local]
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Execute the allowlisted Codex documentation task
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HTTP_PROXY: http://127.0.0.1:7897
+          HTTPS_PROXY: http://127.0.0.1:7897
+        run: >-
+          & '.github/scripts/Invoke-CodexApprovedDocs.ps1'
+          -EventPath $env:GITHUB_EVENT_PATH
+          -Workspace $env:GITHUB_WORKSPACE
+          -OutputPath (Join-Path $env:RUNNER_TEMP 'codex-docs-final.txt')

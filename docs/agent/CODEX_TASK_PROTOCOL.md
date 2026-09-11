@@ -57,6 +57,10 @@ Automatic merging requires a separate human-applied `merge-approved` label. The 
 9. Copy the approved issue specification into `docs/agent/NEXT_TASK.md`, set it to `IN_PROGRESS`, and record the issue number, owner, branch, source commit, and claim time.
 10. Commit and push the claim before modifying implementation files.
 11. Execute only the committed task scope. Do not change seeds, splits, metrics, thresholds, or acceptance criteria after evaluation begins.
+
+## Approved Documentation Repair Executor
+
+An owner-created `ALMT-TASK-*` Issue may trigger the restricted documentation executor only after the owner applies `approved`. The task must identify an open same-repository Source PR and exact Source Commit and list one to ten explicit Markdown files under `docs/agent/`. `NEXT_TASK.md`, `PLAN.md`, and `DECISIONS.md` remain protected. Codex runs with workspace-write access but is instructed not to execute training, inference, dataset, network, Git, or GitHub commands; the trusted wrapper performs Git operations and rejects every changed path outside the exact allowlist. Successful work updates the existing PR, performs Draft-to-Ready, comments on and closes the task Issue, and relies on Work to re-review the new commit.
 12. On completion, update the required run report, `EXPERIMENTS.md`, `STATUS.md`, and `NEXT_TASK.md`; then commit and push the implementation.
 13. Create or update one PR. Mark it ready for review only after all required tests, reports, hashes, and audits are complete.
 
