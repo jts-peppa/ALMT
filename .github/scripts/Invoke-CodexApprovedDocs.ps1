@@ -25,7 +25,10 @@ if ($body -notmatch '(?im)^Source Commit:\s*([0-9a-f]{40})\s*$') { throw 'Missin
 $sourceCommit = $matches[1]
 if ($body -notmatch '(?ms)^## Files Allowed to Modify\s*(.*?)^## ') { throw 'Cannot parse the file allowlist.' }
 $allowSection = $matches[1]
-$allowed = @([regex]::Matches($allowSection, '(?m)^-\s+`([^`]+)`\s*$') | ForEach-Object { $_.Groups[1].Value.Replace('\','/') })
+$allowed = @([regex]::Matches($allowSection, '(?m)^-\s+(?:`([^`]+)`|([A-Za-z0-9._/-]+))\s*$') | ForEach-Object {
+    $value = if ($_.Groups[1].Success) { $_.Groups[1].Value } else { $_.Groups[2].Value }
+    $value.Replace('\','/')
+})
 if ($allowed.Count -lt 1 -or $allowed.Count -gt 10 -or $allowed.Count -ne (@($allowed | Select-Object -Unique)).Count) { throw 'Invalid or duplicate allowlist.' }
 foreach ($path in $allowed) {
     if ($path -notmatch '^docs/agent/(?:runs/)?[A-Za-z0-9._/-]+\.md$' -or $path -match '(?:^|/)\.\.(?:/|$)') { throw "Unsafe allowlisted path: $path" }
