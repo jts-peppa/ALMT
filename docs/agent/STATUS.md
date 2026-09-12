@@ -41,8 +41,8 @@ Unknown or intentionally not asserted:
 
 ## Latest Automated Baseline
 
-- Experiment: EXP-002
+- Experiment: EXP-003
 - Dataset: MOSI aligned
-- Seed: 1111
+- Seeds: 1111, 1112, 1113
 - Status: PRELIMINARY pending Work review
-- Report: docs/agent/runs/exp-002.md
+- Report: docs/agent/runs/exp-003.md
