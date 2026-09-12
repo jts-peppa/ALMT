@@ -10,7 +10,10 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: almt-local-gpu
+  # Non-matching legacy workflows also receive the label event and can cancel a
+  # pending run before their job-level `if` is evaluated. Keep R3 dispatch
+  # isolated; the runner script separately fails closed when the GPU is busy.
+  group: almt-r3-local-gpu
   cancel-in-progress: false
 
 jobs:
